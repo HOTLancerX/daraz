@@ -3,13 +3,16 @@
 /**
  * plugin/daraz/ui/DarazSliderClient.tsx
  *
- * Category-tabbed product slider built on Embla Carousel.
+ * Category-tabbed product slider built on native CSS scroll-snap.
+ * Zero external carousel dependencies — all navigation logic is native JS + CSS.
  *
- * Why Embla instead of react-slick:
- *  - Native CSS gap — no hacks needed
- *  - React 19 + Next.js compatible, zero extra dependencies
- *  - Full TypeScript support
- *  - Fully headless — arrows, dots and all UI are custom JSX
+ * Features:
+ *  - Smooth horizontal scroll with scroll-snap
+ *  - Custom arrow buttons (inside or outside)
+ *  - Dot navigation (inside or outside)
+ *  - Auto-play via setInterval
+ *  - Responsive columns via CSS Grid
+ *  - Category tabs with lazy-load
  *
  * Two data modes:
  *  1. Server path: initialCats + initialProductMap pre-loaded — no fetches.
@@ -24,9 +27,7 @@
  *  - 0 or 2+ selected → hidden.
  */
 
-import { useState, useEffect, useCallback } from "react";
-import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { xFetch } from "@/lib/express";
@@ -101,7 +102,7 @@ function ArrowBtn({
             aria-label={dir === "prev" ? "Previous" : "Next"}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className="flex items-center justify-center w-9 h-9 rounded-full shadow-md transition-all focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+            className="flex items-center justify-center w-9 h-9 rounded-full shadow-md transition-all focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed shrink-0 z-10"
             style={{
                 backgroundColor: hovered
                     ? (colors.arrowHoverBg    || "#f97316")
@@ -158,9 +159,9 @@ function Dots({
     );
 }
 
-// ─── Slider core (Embla) ─────────────────────────────────────────────────────
+// ─── Native scroll-snap slider ────────────────────────────────────────────────
 
-function EmblaSlider({
+function NativeSlider({
     products,
     BoxComponent,
     currencySymbol,
@@ -174,7 +175,6 @@ function EmblaSlider({
     dotPosition,
     autoPlay,
     autoPlaySpeed,
-    infinite,
     colors,
 }: {
     products:      DarazProduct[];
@@ -190,95 +190,146 @@ function EmblaSlider({
     dotPosition:    string;
     autoPlay:       string;
     autoPlaySpeed:  number;
-    infinite:       string;
     colors:         DarazSliderColors;
 }) {
-    const autoplayPlugin = autoPlay === "true"
-        ? Autoplay({ delay: Math.max(Number(autoPlaySpeed) || 3000, 500), stopOnInteraction: true })
-        : undefined;
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [canPrev, setCanPrev]           = useState(false);
+    const [canNext, setCanNext]           = useState(false);
 
-    const [emblaRef, emblaApi] = useEmblaCarousel(
-        {
-            loop:      infinite !== "false",
-            align:     "start",
-            slidesToScroll: 1,
-        },
-        autoplayPlugin ? [autoplayPlugin] : []
-    );
+    // Calculate how many pages we have based on current viewport
+    const getSlidesPerView = useCallback(() => {
+        if (typeof window === 'undefined') return slidesDesktop;
+        const width = window.innerWidth;
+        if (width < 640) return slidesMobile;
+        if (width < 1024) return slidesTablet;
+        return slidesDesktop;
+    }, [slidesDesktop, slidesTablet, slidesMobile]);
 
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const [canPrev, setCanPrev]             = useState(false);
-    const [canNext, setCanNext]             = useState(false);
-    const [scrollSnaps, setScrollSnaps]     = useState<number[]>([]);
+    const [slidesPerView, setSlidesPerView] = useState(getSlidesPerView());
+    const totalPages = Math.ceil(products.length / slidesPerView);
 
-    const onSelect = useCallback(() => {
-        if (!emblaApi) return;
-        setSelectedIndex(emblaApi.selectedScrollSnap());
-        setCanPrev(emblaApi.canScrollPrev());
-        setCanNext(emblaApi.canScrollNext());
-    }, [emblaApi]);
+    // Update slidesPerView on resize
+    useEffect(() => {
+        const handleResize = () => setSlidesPerView(getSlidesPerView());
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [getSlidesPerView]);
+
+    // Update scroll buttons state
+    const updateScrollState = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const atStart = el.scrollLeft <= 10;
+        const atEnd   = el.scrollLeft >= el.scrollWidth - el.clientWidth - 10;
+        setCanPrev(!atStart);
+        setCanNext(!atEnd);
+        // Update current index based on scroll position
+        const itemWidth = el.scrollWidth / products.length;
+        const newIndex = Math.round(el.scrollLeft / (itemWidth * slidesPerView));
+        setCurrentIndex(Math.max(0, Math.min(totalPages - 1, newIndex)));
+    }, [products.length, slidesPerView, totalPages]);
 
     useEffect(() => {
-        if (!emblaApi) return;
-        setScrollSnaps(emblaApi.scrollSnapList());
-        onSelect();
-        emblaApi.on("select", onSelect);
-        emblaApi.on("reInit", onSelect);
-        return () => { emblaApi.off("select", onSelect); emblaApi.off("reInit", onSelect); };
-    }, [emblaApi, onSelect]);
+        const el = scrollRef.current;
+        if (!el) return;
+        updateScrollState();
+        el.addEventListener('scroll', updateScrollState);
+        return () => el.removeEventListener('scroll', updateScrollState);
+    }, [updateScrollState]);
 
-    const scrollPrev = () => emblaApi?.scrollPrev();
-    const scrollNext = () => emblaApi?.scrollNext();
-    const scrollTo   = (i: number) => emblaApi?.scrollTo(i);
+    // Scroll controls
+    const scrollPrev = () => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const itemWidth = el.scrollWidth / products.length;
+        el.scrollBy({ left: -itemWidth * slidesPerView, behavior: 'smooth' });
+    };
 
-    const arrowsVisible  = showArrows !== "false";
-    const dotsVisible    = showDots   !== "false";
-    const dotsOutside    = dotPosition  === "outside";
-    const arrowsOutside  = arrowPosition === "outside";
+    const scrollNext = () => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const itemWidth = el.scrollWidth / products.length;
+        el.scrollBy({ left: itemWidth * slidesPerView, behavior: 'smooth' });
+    };
 
-    // Responsive: CSS custom properties on the viewport handle column count.
-    // We inject a small <style> block scoped to this element to avoid
-    // global side effects. Embla just needs 'flex' slides with a fixed width.
-    const safeDesktop = Math.max(Number(slidesDesktop) || 4, 1);
-    const safeTablet  = Math.max(Number(slidesTablet)  || 3, 1);
-    const safeMobile  = Math.max(Number(slidesMobile)  || 2, 1);
-    const uid         = `emb-${products[0]?._id?.slice(-5) ?? "x"}`;
+    const scrollToPage = (pageIndex: number) => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const itemWidth = el.scrollWidth / products.length;
+        el.scrollTo({ left: itemWidth * slidesPerView * pageIndex, behavior: 'smooth' });
+    };
+
+    // Auto-play
+    useEffect(() => {
+        if (autoPlay !== "true") return;
+        const delay = Math.max(Number(autoPlaySpeed) || 3000, 500);
+        const timer = setInterval(() => {
+            const el = scrollRef.current;
+            if (!el) return;
+            const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 10;
+            if (atEnd) {
+                // Loop back to start
+                el.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                scrollNext();
+            }
+        }, delay);
+        return () => clearInterval(timer);
+    }, [autoPlay, autoPlaySpeed]);
+
+    const arrowsVisible = showArrows !== "false";
+    const dotsVisible   = showDots   !== "false";
+    const dotsOutside   = dotPosition  === "outside";
+    const arrowsOutside = arrowPosition === "outside";
+
+    const uid = `slider-${products[0]?._id?.slice(-5) ?? "x"}`;
 
     return (
         <div className="w-full space-y-2">
-            <style>{`
-                #${uid} .emb-slide {
-                    flex: 0 0 calc(100% / ${safeMobile});
-                    min-width: 0;
-                }
-                @media (min-width: 640px) {
-                    #${uid} .emb-slide {
-                        flex: 0 0 calc(100% / ${safeTablet});
-                    }
-                }
-                @media (min-width: 1024px) {
-                    #${uid} .emb-slide {
-                        flex: 0 0 calc(100% / ${safeDesktop});
-                    }
-                }
-            `}</style>
-
             {/* Slider + outside arrows layout */}
-            <div id={uid} className="relative">
+            <div className="relative">
                 <div className={`flex items-center gap-2 ${arrowsOutside ? "" : ""}`}>
                     {/* Prev arrow — outside left */}
                     {arrowsVisible && arrowsOutside && (
                         <ArrowBtn dir="prev" onClick={scrollPrev} colors={colors} disabled={!canPrev} />
                     )}
 
-                    {/* Viewport */}
-                    <div className="overflow-hidden flex-1 min-w-0" ref={emblaRef}>
+                    {/* Scroll container */}
+                    <div className="overflow-hidden flex-1 min-w-0 relative">
                         <div
-                            className="flex"
-                            style={{ gap: slideGap }}
+                            ref={scrollRef}
+                            className="overflow-x-auto scrollbar-hide"
+                            style={{
+                                display: 'grid',
+                                gridAutoFlow: 'column',
+                                gridAutoColumns: `calc((100% - ${slideGap * (slidesMobile - 1)}px) / ${slidesMobile})`,
+                                gap: `${slideGap}px`,
+                                scrollSnapType: 'x mandatory',
+                                scrollBehavior: 'smooth',
+                            }}
                         >
+                            <style jsx>{`
+                                .scrollbar-hide {
+                                    -ms-overflow-style: none;
+                                    scrollbar-width: none;
+                                }
+                                .scrollbar-hide::-webkit-scrollbar {
+                                    display: none;
+                                }
+                                @media (min-width: 640px) {
+                                    #${uid} > div {
+                                        grid-auto-columns: calc((100% - ${slideGap * (slidesTablet - 1)}px) / ${slidesTablet});
+                                    }
+                                }
+                                @media (min-width: 1024px) {
+                                    #${uid} > div {
+                                        grid-auto-columns: calc((100% - ${slideGap * (slidesDesktop - 1)}px) / ${slidesDesktop});
+                                    }
+                                }
+                            `}</style>
                             {products.map((product) => (
-                                <div key={product._id} className="emb-slide shrink-0">
+                                <div key={product._id} style={{ scrollSnapAlign: 'start' }}>
                                     {BoxComponent ? (
                                         <BoxComponent
                                             data={product}
@@ -296,6 +347,30 @@ function EmblaSlider({
                                 </div>
                             ))}
                         </div>
+
+                        {/* Inside arrows — overlaid on the viewport */}
+                        {arrowsVisible && !arrowsOutside && (
+                            <>
+                                <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10">
+                                    <ArrowBtn dir="prev" onClick={scrollPrev} colors={colors} disabled={!canPrev} />
+                                </div>
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
+                                    <ArrowBtn dir="next" onClick={scrollNext} colors={colors} disabled={!canNext} />
+                                </div>
+                            </>
+                        )}
+
+                        {/* Dots — inside (absolute, below slides) */}
+                        {dotsVisible && !dotsOutside && totalPages > 1 && (
+                            <div className="absolute bottom-0 left-0 right-0">
+                                <Dots
+                                    count={totalPages}
+                                    selected={currentIndex}
+                                    onSelect={scrollToPage}
+                                    colors={colors}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Next arrow — outside right */}
@@ -304,45 +379,21 @@ function EmblaSlider({
                     )}
                 </div>
 
-                {/* Inside arrows — overlaid on the viewport */}
-                {arrowsVisible && !arrowsOutside && (
-                    <>
-                        <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10">
-                            <ArrowBtn dir="prev" onClick={scrollPrev} colors={colors} disabled={!canPrev} />
-                        </div>
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
-                            <ArrowBtn dir="next" onClick={scrollNext} colors={colors} disabled={!canNext} />
-                        </div>
-                    </>
+                {/* Dots — outside (normal flow, below slider) */}
+                {dotsVisible && dotsOutside && totalPages > 1 && (
+                    <Dots
+                        count={totalPages}
+                        selected={currentIndex}
+                        onSelect={scrollToPage}
+                        colors={colors}
+                    />
                 )}
 
-                {/* Dots — inside (absolute, below slides) */}
-                {dotsVisible && !dotsOutside && scrollSnaps.length > 1 && (
-                    <div className="absolute bottom-0 left-0 right-0">
-                        <Dots
-                            count={scrollSnaps.length}
-                            selected={selectedIndex}
-                            onSelect={scrollTo}
-                            colors={colors}
-                        />
-                    </div>
+                {/* Bottom padding when dots are inside so they don't overlap cards */}
+                {dotsVisible && !dotsOutside && totalPages > 1 && (
+                    <div style={{ height: 32 }} />
                 )}
             </div>
-
-            {/* Dots — outside (normal flow, below slider) */}
-            {dotsVisible && dotsOutside && scrollSnaps.length > 1 && (
-                <Dots
-                    count={scrollSnaps.length}
-                    selected={selectedIndex}
-                    onSelect={scrollTo}
-                    colors={colors}
-                />
-            )}
-
-            {/* Bottom padding when dots are inside so they don't overlap cards */}
-            {dotsVisible && !dotsOutside && scrollSnaps.length > 1 && (
-                <div style={{ height: 32 }} />
-            )}
         </div>
     );
 }
@@ -529,7 +580,7 @@ export default function DarazSliderClient({
                     <p className="text-xs">No products in this category.</p>
                 </div>
             ) : (
-                <EmblaSlider
+                <NativeSlider
                     key={activeTab}
                     products={products}
                     BoxComponent={BoxComponent}
@@ -544,7 +595,6 @@ export default function DarazSliderClient({
                     dotPosition={dotPosition}
                     autoPlay={autoPlay}
                     autoPlaySpeed={autoPlaySpeed}
-                    infinite={infinite}
                     colors={colors}
                 />
             )}
