@@ -21,6 +21,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
+import { useFlashSale, applyFlashSale, type FlashSaleCampaignFull } from './flashSaleOptional';
 import VariantPopup, { type VariantData } from './VariantPopup';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,8 +35,10 @@ interface DarazBoxProps {
         category?: string | null;
         info:     Record<string, string>;
     };
-    productUrl:      string;
-    currencySymbol?: string;
+    productUrl:        string;
+    currencySymbol?:   string;
+    /** Active flash-sale campaign — injected server-side when available */
+    flashSaleCampaign?: FlashSaleCampaignFull | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -76,7 +79,9 @@ function addToCartDirect(item: Record<string, unknown>) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function DarazBox1({ data, productUrl, currencySymbol = '$' }: DarazBoxProps) {
+export default function DarazBox1({ data, productUrl, currencySymbol = '$', flashSaleCampaign }: DarazBoxProps) {
+    const { resolvePrice } = useFlashSale();
+
     const variate   = parseJson<Record<string, any>>(data.info?._variate, {});
     const priceType = (variate.priceType ?? 'single') as 'single' | 'variant';
     const variants  = (variate.variants ?? []) as VariantData[];
@@ -85,12 +90,24 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$' }: Da
     const sellingPrice = parseFloat(variate.sellingprice ?? '0') || 0;
     const regularPrice = parseFloat(variate.regularprice ?? '0') || 0;
     const singleStock  = parseInt(variate.stock ?? '0', 10) || 0;
+    const basePrice    = sellingPrice > 0 ? sellingPrice : regularPrice;
 
-    const singleBasePrice = sellingPrice > 0 ? sellingPrice : regularPrice;
-    const hasDiscount     = sellingPrice > 0 && regularPrice > sellingPrice;
-    const discountPercent = hasDiscount
-        ? Math.round(((regularPrice - sellingPrice) / regularPrice) * 100)
-        : 0;
+    // Flash-sale: use server-injected prop first, fall back to client hook
+    const flashResult = flashSaleCampaign
+        ? applyFlashSale(basePrice, flashSaleCampaign)
+        : resolvePrice(basePrice, String(data._id), data.category ?? null);
+
+    const hasFlash        = flashResult.applied;
+    const productHasDisc  = !hasFlash && sellingPrice > 0 && regularPrice > sellingPrice;
+    const displaySelling  = hasFlash ? flashResult.sellingPrice : basePrice;
+    const displayRegular  = hasFlash ? flashResult.regularPrice : (productHasDisc ? regularPrice : basePrice);
+    const discountPercent = hasFlash
+        ? flashResult.discountPercent
+        : (productHasDisc ? Math.round(((regularPrice - sellingPrice) / regularPrice) * 100) : 0);
+    const showStrike      = hasFlash || productHasDisc;
+
+    const singleBasePrice = displaySelling;
+    const hasDiscount     = showStrike;
 
     // ── Variant mode fields ───────────────────────────────────────────────────
 
@@ -259,7 +276,7 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$' }: Da
                                     </span>
                                     {hasDiscount && (
                                         <span className="text-[11px] text-gray-400 line-through">
-                                            {currencySymbol}{fmtPrice(regularPrice)}
+                                            {currencySymbol}{fmtPrice(displayRegular)}
                                         </span>
                                     )}
                                 </>
