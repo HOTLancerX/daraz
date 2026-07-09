@@ -223,7 +223,7 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$', flas
 
                 {/* ── Badges ── */}
                 {priceType === 'single' && discountPercent > 0 && (
-                    <span className="absolute top-2 left-2 z-10 bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    <span className="absolute top-2 left-2 z-10 bg-main text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                         -{discountPercent}%
                     </span>
                 )}
@@ -261,7 +261,7 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$', flas
                     {/* Title */}
                     <Link
                         href={productUrl}
-                        className="text-xs font-medium text-gray-800 hover:text-orange-500 transition-colors line-clamp-2 leading-snug"
+                        className="text-xs font-medium text-gray-800 hover:text-main transition-colors line-clamp-2 leading-snug"
                     >
                         {data.title}
                     </Link>
@@ -315,7 +315,7 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$', flas
                                         onMouseLeave={() => setHoveredSwatch(null)}
                                         className={`w-5 h-5 rounded-full border-2 transition-all shrink-0 ${
                                             isActive
-                                                ? 'border-orange-500 scale-110 ring-1 ring-orange-300'
+                                                ? 'border-main scale-110 ring-1 ring-orange-300'
                                                 : 'border-white shadow-sm hover:scale-110 hover:border-orange-300'
                                         }`}
                                         style={{ backgroundColor: swatch.hex }}
@@ -333,7 +333,7 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$', flas
                                         onMouseLeave={() => setHoveredSwatch(null)}
                                         className={`px-1.5 py-0.5 rounded text-[10px] font-medium border transition-all ${
                                             isActive
-                                                ? 'bg-orange-500 text-white border-orange-500'
+                                                ? 'bg-main text-white border-main'
                                                 : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-orange-300'
                                         }`}
                                     >
@@ -357,7 +357,7 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$', flas
                             : handleSingleCart
                         }
                         disabled={!inStock}
-                        className="mt-1 w-full py-1.5 rounded-lg border border-orange-400 text-orange-500 text-xs font-semibold hover:bg-orange-500 hover:text-white disabled:border-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+                        className="mt-1 w-full py-1.5 rounded-lg border border-main/80 text-main text-xs font-semibold hover:bg-main hover:text-white disabled:border-gray-200 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                     >
                         <Icon icon="mdi:cart-plus" width="13" />
                         {inStock

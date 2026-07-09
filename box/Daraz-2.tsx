@@ -187,7 +187,7 @@ export default function DarazBox2({ data, productUrl, currencySymbol = '$', flas
                     tabIndex={-1}
                 >
                     {discPct > 0 && (
-                        <span className="absolute top-1.5 left-1.5 z-10 bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none shadow">
+                        <span className="absolute top-1.5 left-1.5 z-10 bg-main text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none shadow">
                             -{discPct}%
                         </span>
                     )}
@@ -217,7 +217,7 @@ export default function DarazBox2({ data, productUrl, currencySymbol = '$', flas
                     {/* Title */}
                     <Link
                         href={productUrl}
-                        className="text-xs font-semibold text-gray-800 hover:text-orange-500 transition-colors line-clamp-2 leading-snug"
+                        className="text-xs font-semibold text-gray-800 hover:text-main transition-colors line-clamp-2 leading-snug"
                     >
                         {data.title}
                     </Link>
@@ -263,7 +263,7 @@ export default function DarazBox2({ data, productUrl, currencySymbol = '$', flas
                                         onClick={(e) => { e.preventDefault(); setActiveSwatch(sw.value); }}
                                         className={`w-4 h-4 rounded-full border-2 shrink-0 transition-all ${
                                             activeSwatch === sw.value
-                                                ? 'border-orange-500 scale-110 ring-1 ring-orange-300'
+                                                ? 'border-main scale-110 ring-1 ring-orange-300'
                                                 : 'border-white shadow-sm hover:border-orange-300'
                                         }`}
                                         style={{ backgroundColor: sw.hex }}
@@ -275,7 +275,7 @@ export default function DarazBox2({ data, productUrl, currencySymbol = '$', flas
                                         onClick={(e) => { e.preventDefault(); setActiveSwatch(sw.value); }}
                                         className={`px-1 py-0.5 rounded text-[9px] font-medium border transition-all ${
                                             activeSwatch === sw.value
-                                                ? 'bg-orange-500 text-white border-orange-500'
+                                                ? 'bg-main text-white border-main'
                                                 : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-orange-300'
                                         }`}
                                     >
@@ -297,7 +297,7 @@ export default function DarazBox2({ data, productUrl, currencySymbol = '$', flas
                             : handleSingleCart
                         }
                         disabled={!inStock}
-                        className="mt-auto w-full py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 text-[10px] font-bold hover:bg-orange-500 hover:text-white hover:border-orange-500 disabled:bg-gray-50 disabled:border-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1"
+                        className="mt-auto w-full py-1.5 rounded-xl bg-main/20 border border-main/50 text-main text-sm font-bold hover:bg-main hover:text-white hover:border-main disabled:bg-gray-50 disabled:border-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1"
                     >
                         <Icon icon="mdi:cart-plus" width={11} />
                         {inStock
