@@ -2,11 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
-import MenuClients from '@/components/MenuClients';
-import MobileDrawer from '@/components/page/header/MobileDrawer';
 import CartButton from './CartButton';
 import type { MenuItem } from '@/models/Menu';
 import AuthAc from '@/components/AuthAc';
