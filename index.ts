@@ -27,6 +27,7 @@ import daraz3Element from "./elements/Daraz-3";
 import darazMenusElement from "./elements/Menus";
 import darazCategoriesElement from "./elements/Categories";
 import DarazHeader from "./header/Header1";
+import DarazProductLayout from "./product/Layout";
 
 // ─── Plugin metadata ──────────────────────────────────────────────────────────
 
@@ -49,8 +50,18 @@ export function register(): void {
     // product-category layout that resolves the active box from the registry.
     addHook("root.pages", [
         {
+            key:      "product",
+            label:    "Daraz Product Layout",
+            type:     "product",
+            slug:     "dynamic",
+            style:    "left",
+            position: 25,
+            active:   false,
+            component: DarazProductLayout,
+        },
+        {
             key:      "header",
-            label:    "Daraz Header Layout",
+            label:    "Daraz Header",
             type:     "header",
             slug:     "layout",
             style:    "left",
