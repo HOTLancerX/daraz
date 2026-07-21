@@ -24,6 +24,9 @@ import DarazBox3 from "./box/Daraz-3";
 import daraz1Element from "./elements/Daraz-1";
 import daraz2Element from "./elements/Daraz-2";
 import daraz3Element from "./elements/Daraz-3";
+import darazMenusElement from "./elements/Menus";
+import darazCategoriesElement from "./elements/Categories";
+import DarazHeader from "./header/Header1";
 
 // ─── Plugin metadata ──────────────────────────────────────────────────────────
 
@@ -45,6 +48,16 @@ export function register(): void {
     // type: "product-box" — shown in the Template manager and used by any
     // product-category layout that resolves the active box from the registry.
     addHook("root.pages", [
+        {
+            key:      "header",
+            label:    "Daraz Header Layout",
+            type:     "header",
+            slug:     "layout",
+            style:    "left",
+            position: 15,
+            active:   false,
+            component: DarazHeader,
+        },
         {
             key:      "product-box",
             label:    "Daraz Box 1",
@@ -84,4 +97,8 @@ export function register(): void {
     addBuilderElement(daraz2Element, PLUGINS.nx);
     // "Daraz Load More" — single grid with load-more button / infinite scroll
     addBuilderElement(daraz3Element, PLUGINS.nx);
+    // "Daraz Vertical Menu" — multi-level vertical menu
+    addBuilderElement(darazMenusElement, PLUGINS.nx);
+    // "Daraz Categories" — category grid / slider
+    addBuilderElement(darazCategoriesElement, PLUGINS.nx);
 }
