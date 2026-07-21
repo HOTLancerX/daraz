@@ -156,7 +156,7 @@ function DarazMenusFrontend({ element }: { element: any }) {
             borderColor: colors.navBorderColor,
           }}
         >
-          <div className="overflow-y-auto flex-1 scrollbar-thin">
+          <div className="overflow-y-auto flex-1 scrollbar-thin divide-gray-200 divide-y">
             {menuItems.map((item) => {
               const isActive = activePath[0] === item.id;
               const hasChildren = item.children && item.children.length > 0;

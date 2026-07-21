@@ -199,6 +199,8 @@ function DarazCategoriesFrontend({ element }: { element: any }) {
   const sectionTitle = s.content?.section_title !== undefined ? s.content.section_title : "Categories";
   const imageShape = s.content?.image_shape || "round";
   const desktopCols = s.content?.desktop_cols ?? 8;
+  const tabletCols = s.content?.tablet_cols ?? 6;
+  const mobileCols = s.content?.mobile_cols ?? 4;
   
   const bgColor = s.style?.bg_color || "#ffffff";
   const itemBgColor = s.style?.item_bg_color || "#ffffff";
@@ -252,7 +254,7 @@ function DarazCategoriesFrontend({ element }: { element: any }) {
         @media (min-width: 640px) {
           .categories-grid-${element.id} {
             display: grid;
-            grid-template-columns: repeat(${Math.max(3, Math.min(6, desktopCols - 1))}, minmax(0, 1fr));
+            grid-template-columns: repeat(${tabletCols}, minmax(0, 1fr));
           }
         }
         @media (min-width: 1024px) {
@@ -287,7 +289,14 @@ function DarazCategoriesFrontend({ element }: { element: any }) {
         <div className="overflow-hidden w-full" ref={emblaRef}>
           <div className="flex" style={{ gap: `${insideGap}px` }}>
             {pairs.map((pair, idx) => (
-              <div key={idx} className="flex-[0_0_24%] min-w-0 flex flex-col" style={{ gap: `${insideGap}px` }}>
+              <div
+                key={idx}
+                className="min-w-0 flex flex-col"
+                style={{
+                  flex: `0 0 calc(${100 / mobileCols}% - ${(insideGap * (mobileCols - 1)) / mobileCols}px)`,
+                  gap: `${insideGap}px`
+                }}
+              >
                 <div className="flex-1">
                   <CategoryItem
                     item={pair.top}
@@ -335,6 +344,8 @@ const darazCategoriesElement = {
       image_shape: "round",
       items: DEFAULT_CATEGORIES,
       desktop_cols: 8,
+      tablet_cols: 6,
+      mobile_cols: 4,
     },
 
     style: {
@@ -391,6 +402,34 @@ const darazCategoriesElement = {
               onChange={onChange}
               min={4}
               max={12}
+              step={1}
+            />
+          ),
+        },
+        {
+          name: "tablet_cols",
+          responsive: false,
+          render: (value: any, onChange: any) => (
+            <NumberControl
+              label="Tablet Columns"
+              value={value ?? 6}
+              onChange={onChange}
+              min={3}
+              max={10}
+              step={1}
+            />
+          ),
+        },
+        {
+          name: "mobile_cols",
+          responsive: false,
+          render: (value: any, onChange: any) => (
+            <NumberControl
+              label="Mobile Columns"
+              value={value ?? 4}
+              onChange={onChange}
+              min={2}
+              max={6}
               step={1}
             />
           ),
