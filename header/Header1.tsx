@@ -20,11 +20,6 @@ interface Header4Props {
 
 export default function DarazHeader({
     settings = {},
-    topItems       = [],
-    mainItems      = [],
-    rightItems     = [],
-    mobileItems    = [],
-    builderContent = {},
 }: Header4Props) {
     const router = useRouter();
     const [showAppBanner, setShowAppBanner] = useState(true);
