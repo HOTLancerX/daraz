@@ -694,6 +694,15 @@ export default function DarazProductDetails({
                   </div>
                 </div>
 
+                {/* Chat with Seller Button */}
+                <Link
+                  href={`/account/messages/${seller.slug}?productId=${encodeURIComponent(data.id)}&productTitle=${encodeURIComponent(data.title)}&productImage=${encodeURIComponent(activeImage)}&productPrice=${encodeURIComponent(currentPrice)}&productSlug=${encodeURIComponent(data.slug)}`}
+                  className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-colors shadow-xs mt-2"
+                >
+                  <Icon icon="solar:chat-round-dots-bold" width={16} />
+                  <span>Chat with Seller</span>
+                </Link>
+
                 <Link
                   href={seller.profileUrl}
                   className="block text-center text-xs font-bold text-blue-600 uppercase hover:underline py-1"
@@ -858,20 +867,30 @@ export default function DarazProductDetails({
           <div className="w-px h-6 bg-gray-200 my-auto" />
 
           {/* Chat */}
-          <button
-            type="button"
-            onClick={() => {
-              if (whatsappNumber) {
-                window.open(`https://wa.me/${whatsappNumber}`, "_blank");
-              } else if (seller?.website) {
-                window.open(seller.website, "_blank");
-              }
-            }}
-            className="flex flex-col items-center justify-center text-center px-1.5 text-gray-600 hover:text-blue-600 transition-colors"
-          >
-            <Icon icon="fluent:chat-smile-24-regular" width={22} className="text-gray-700" />
-            <span className="text-[10px] text-gray-500 leading-tight mt-0.5 font-medium">Chat</span>
-          </button>
+          {seller?.slug ? (
+            <Link
+              href={`/account/messages/${seller.slug}?productId=${encodeURIComponent(data.id)}&productTitle=${encodeURIComponent(data.title)}&productImage=${encodeURIComponent(activeImage)}&productPrice=${encodeURIComponent(currentPrice)}&productSlug=${encodeURIComponent(data.slug)}`}
+              className="flex flex-col items-center justify-center text-center px-1.5 text-gray-600 hover:text-orange-600 transition-colors"
+            >
+              <Icon icon="griddy-icons:chat" width={20} className="text-orange-500" />
+              <span className="text-[10px] text-gray-500 leading-tight mt-0.5 font-medium">Chat</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (whatsappNumber) {
+                  window.open(`https://wa.me/${whatsappNumber}`, "_blank");
+                } else if (seller?.website) {
+                  window.open(seller.website, "_blank");
+                }
+              }}
+              className="flex flex-col items-center justify-center text-center px-1.5 text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <Icon icon="ic:baseline-whatsapp" width={22} className="text-gray-700" />
+              <span className="text-[10px] text-gray-500 leading-tight mt-0.5 font-medium">Chat</span>
+            </button>
+          )}
         </div>
 
         {/* Right Side: Slanted Buy Now & Add to Cart */}
