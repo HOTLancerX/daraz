@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
@@ -23,6 +23,52 @@ export default function DarazHeader({
 }: Header4Props) {
     const router = useRouter();
     const [showAppBanner, setShowAppBanner] = useState(true);
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [isInstalled, setIsInstalled] = useState(false);
+
+    useEffect(() => {
+        if (
+            typeof window !== 'undefined' &&
+            (window.matchMedia('(display-mode: standalone)').matches ||
+             (window.navigator as any).standalone === true)
+        ) {
+            setIsInstalled(true);
+        }
+
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+
+        const handleAppInstalled = () => {
+            setIsInstalled(true);
+            setDeferredPrompt(null);
+            setShowAppBanner(false);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.addEventListener('appinstalled', handleAppInstalled);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.removeEventListener('appinstalled', handleAppInstalled);
+        };
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                setShowAppBanner(false);
+            }
+            setDeferredPrompt(null);
+        } else if (isInstalled) {
+            setShowAppBanner(false);
+        } else {
+            alert("To install the app, tap your browser's menu button (or share icon) and select 'Add to Home Screen' or 'Install App'.");
+        }
+    };
 
     const isSticky = settings.header_sticky !== 'false';
     const isTransparent = settings.header_transparent === 'true';
@@ -31,13 +77,13 @@ export default function DarazHeader({
     const appBannerEnabled = settings.header_app_banner_enabled !== 'false';
     const appBannerTitle = settings.header_app_banner_title || 'Daraz App';
     const appBannerSubtitle = settings.header_app_banner_subtitle || 'Save more on App';
-    const appBannerButton = settings.header_app_banner_button || 'Open';
+    const appBannerButton = settings.header_app_banner_button || 'Install';
 
     return (
         <header className={`z-50 shadow-sm transition-all duration-200 ${isSticky ? 'sticky top-0' : 'relative'} ${isTransparent ? 'bg-transparent' : 'bg-white'}`}>
             
             {/* 1. Mobile App Banner (Dismissible) */}
-            {appBannerEnabled && showAppBanner && (
+            {appBannerEnabled && showAppBanner && !isInstalled && (
                 <div className="md:hidden flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-100 relative">
                     <button 
                         onClick={() => setShowAppBanner(false)}
@@ -59,10 +105,10 @@ export default function DarazHeader({
                     </div>
 
                     <button 
-                        onClick={() => router.push('/')}
+                        onClick={handleInstallClick}
                         className="px-5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-full text-xs font-bold shadow-xs active:scale-95 transition-transform"
                     >
-                        {appBannerButton}
+                        {deferredPrompt ? 'Install' : appBannerButton}
                     </button>
                 </div>
             )}
