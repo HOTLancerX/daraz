@@ -61,7 +61,7 @@ export function register(): void {
         },
         {
             key:      "header",
-            label:    "Daraz Header",
+            label:    "Daraz Header 1",
             type:     "header",
             slug:     "layout",
             style:    "left",
