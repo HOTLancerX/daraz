@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import ProductFlashBox from "@/plugin/flash-sale/box/Product-flash";
 import Variant from "@/plugin/product/product/Variant";
+import { getAllRootPages } from "@/hook";
+import { xFetch } from "@/lib/express";
 
 export interface DarazProductDetailsProps {
   data: { id: string; title: string; slug: string };
@@ -62,6 +64,7 @@ export interface DarazProductDetailsProps {
   } | null;
   categoryProducts?: any[] | null;
   flashSaleCampaign?: any | null;
+  permalinkMap?: Record<string, string>;
 }
 
 interface CartItem {
@@ -172,9 +175,41 @@ export default function DarazProductDetails({
   seller = null,
   categoryProducts = null,
   flashSaleCampaign = null,
+  permalinkMap = {},
 }: DarazProductDetailsProps) {
   const router = useRouter();
   const { success, error } = useToast();
+
+  const [productPrefix, setProductPrefix] = useState(() =>
+    (permalinkMap["product"] ?? "product").trim().replace(/^\/+|\/+$/g, "")
+  );
+
+  useEffect(() => {
+    if (permalinkMap["product"]) {
+      setProductPrefix(permalinkMap["product"].trim().replace(/^\/+|\/+$/g, ""));
+    } else {
+      xFetch("/permalink", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : {}))
+        .then((data) => {
+          if (data && typeof data === "object" && !(data as any).error) {
+            const prefix = (data as Record<string, string>)["product"] ?? "product";
+            setProductPrefix(prefix.trim().replace(/^\/+|\/+$/g, ""));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [permalinkMap]);
+
+  const buildProductUrl = (slug: string) =>
+    productPrefix ? `/${productPrefix}/${slug}` : `/${slug}`;
+
+  const BoxComponent = useMemo(() => {
+    const boxes = getAllRootPages().filter(
+      (p) => p.type === "product-box" && p.slug === "dynamic"
+    );
+    if (!boxes.length) return ProductFlashBox;
+    return (boxes.find((b) => b.active === true) ?? boxes[0])?.component ?? ProductFlashBox;
+  }, []);
 
   // ── Flash Sale Computations ───────────────────────────────────────────────
   const hasFlash = !!flashSaleCampaign;
@@ -741,7 +776,7 @@ export default function DarazProductDetails({
           {/* Rich Description */}
           <div className="relative">
             <div
-              className={`prose max-w-none text-xs sm:text-sm text-gray-700 leading-relaxed overflow-hidden transition-all duration-500 ${
+              className={`prose max-w-none text-xs sm:text-sm description text-gray-700 leading-relaxed overflow-hidden transition-all duration-500 ${
                 expandedDesc ? "max-h-none" : "max-h-48"
               }`}
               dangerouslySetInnerHTML={{
@@ -834,10 +869,10 @@ export default function DarazProductDetails({
               }}
             >
               {categoryProducts.map((item: any) => (
-                <ProductFlashBox
+                <BoxComponent
                   key={item._id}
                   data={item}
-                  productUrl={`/product/${item.slug}`}
+                  productUrl={buildProductUrl(item.slug)}
                   currencySymbol={currencySymbol}
                 />
               ))}

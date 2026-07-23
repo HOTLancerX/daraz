@@ -171,7 +171,7 @@ function DarazMenusFrontend({ element }: { element: any }) {
                 >
                   <Link
                     href={item.url || "#"}
-                    className="flex items-center justify-between px-4 py-2.5"
+                    className="flex items-center justify-between p-2"
                     style={{
                       color: isActive ? colors.navHoverText : colors.navText,
                       fontSize: `${colors.navFontSize}px`,
@@ -234,7 +234,7 @@ function DarazMenusFrontend({ element }: { element: any }) {
                     borderColor: colors.navBorderColor,
                   }}
                 >
-                  <div className="overflow-y-auto flex-1 scrollbar-thin">
+                  <div className="overflow-y-auto flex-1 divide-gray-200 divide-y scrollbar-thin">
                     {colItems.map((item) => {
                       const isActive = currentActiveId === item.id;
                       const hasChildren = item.children && item.children.length > 0;
@@ -249,7 +249,7 @@ function DarazMenusFrontend({ element }: { element: any }) {
                         >
                           <Link
                             href={item.url || "#"}
-                            className="flex items-center justify-between px-4 py-2.5"
+                            className="flex items-center justify-between p-2"
                             style={{
                               color: isActive ? colors.navHoverText : colors.navText,
                               fontSize: `${colors.navFontSize}px`,

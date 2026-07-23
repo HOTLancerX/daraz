@@ -182,6 +182,7 @@ export default function DarazProductLayout({
       categoryProducts={categoryProducts}
       flashSaleCampaign={flashSaleCampaign}
       brand={brand}
+      permalinkMap={permalinkMap}
       seller={
         seller
           ? {
