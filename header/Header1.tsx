@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
-import CartButton from './CartButton';
 import type { MenuItem } from '@/models/Menu';
 import AuthAc from '@/components/AuthAc';
 import Search from '@/components/Search';
+import CartButton from '@/plugin/product/header/CartButton';
 
 interface Header4Props {
     settings?: Record<string, any>;
