@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import type { MenuItem } from '@/models/Menu';
 import AuthAc from '@/components/AuthAc';
@@ -21,7 +20,6 @@ interface Header4Props {
 export default function DarazHeader({
     settings = {},
 }: Header4Props) {
-    const router = useRouter();
     const [showAppBanner, setShowAppBanner] = useState(true);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isInstalled, setIsInstalled] = useState(false);
