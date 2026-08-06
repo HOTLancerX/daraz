@@ -56,7 +56,7 @@ export function register(): void {
             slug:     "dynamic",
             style:    "left",
             position: 25,
-            active:   false,
+            active:   true,
             component: DarazProductLayout,
         },
         {
@@ -66,7 +66,7 @@ export function register(): void {
             slug:     "layout",
             style:    "left",
             position: 15,
-            active:   false,
+            active:   true,
             component: DarazHeader,
         },
         {
@@ -76,7 +76,7 @@ export function register(): void {
             slug:     "dynamic",
             style:    "left",
             position: 30,
-            active:   false,
+            active:   true,
             component: DarazBox1,
         },
         {
@@ -86,7 +86,7 @@ export function register(): void {
             slug:     "dynamic",
             style:    "left",
             position: 31,
-            active:   false,
+            active:   true,
             component: DarazBox2,
         },
         {
@@ -96,7 +96,7 @@ export function register(): void {
             slug:     "dynamic",
             style:    "left",
             position: 32,
-            active:   false,
+            active:   true,
             component: DarazBox3,
         },
     ], PLUGINS.nx);

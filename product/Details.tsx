@@ -65,6 +65,7 @@ export interface DarazProductDetailsProps {
   categoryProducts?: any[] | null;
   flashSaleCampaign?: any | null;
   permalinkMap?: Record<string, string>;
+  builder?: React.ReactNode;
 }
 
 interface CartItem {
@@ -176,6 +177,7 @@ export default function DarazProductDetails({
   categoryProducts = null,
   flashSaleCampaign = null,
   permalinkMap = {},
+  builder,
 }: DarazProductDetailsProps) {
   const router = useRouter();
   const { success, error } = useToast();
@@ -748,6 +750,8 @@ export default function DarazProductDetails({
             )}
           </div>
         </div>
+
+        {builder}
 
         {/* ─── 3. PRODUCT DETAILS BOX ─── */}
         <div className="bg-white rounded-lg p-4 sm:p-6 shadow-xs space-y-4">

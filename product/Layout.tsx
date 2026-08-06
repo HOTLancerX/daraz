@@ -39,6 +39,7 @@ interface ProductPageProps {
     flashSaleCampaign?: any | null;
     brand?: { _id: string; title: string; slug: string } | null;
   };
+  builder?: React.ReactNode;
 }
 
 function parseJson<T>(raw: string | undefined, fallback: T): T {
@@ -60,6 +61,7 @@ export default function DarazProductLayout({
   settings = {},
   permalinkMap = {},
   pageData,
+  builder,
 }: ProductPageProps) {
   const variate = parseJson<Record<string, any>>(data.info?._variate, {});
 
@@ -183,6 +185,7 @@ export default function DarazProductLayout({
       flashSaleCampaign={flashSaleCampaign}
       brand={brand}
       permalinkMap={permalinkMap}
+      builder={builder}
       seller={
         seller
           ? {
