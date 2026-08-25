@@ -81,6 +81,8 @@ function addToCartDirect(item: Record<string, unknown>) {
 
 export default function DarazBox1({ data, productUrl, currencySymbol = '$', flashSaleCampaign }: DarazBoxProps) {
     const { resolvePrice } = useFlashSale();
+    const slug = data?.slug || String(data?._id || '');
+    const finalProductUrl = productUrl || `/product/${slug}`;
 
     const variate   = parseJson<Record<string, any>>(data.info?._variate, {});
     const priceType = (variate.priceType ?? 'single') as 'single' | 'variant';
@@ -235,7 +237,7 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$', flas
 
                 {/* ── Image ── */}
                 <Link
-                    href={productUrl}
+                    href={finalProductUrl}
                     className="block bg-gray-50 overflow-hidden shrink-0"
                     style={{ aspectRatio: '1/1' }}
                     tabIndex={-1}
@@ -260,7 +262,7 @@ export default function DarazBox1({ data, productUrl, currencySymbol = '$', flas
 
                     {/* Title */}
                     <Link
-                        href={productUrl}
+                        href={finalProductUrl}
                         className="text-xs font-medium text-gray-800 hover:text-main transition-colors line-clamp-2 leading-snug"
                     >
                         {data.title}
