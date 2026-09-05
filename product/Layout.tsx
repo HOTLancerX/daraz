@@ -38,6 +38,7 @@ interface ProductPageProps {
     categoryProducts?: any[] | null;
     flashSaleCampaign?: any | null;
     brand?: { _id: string; title: string; slug: string } | null;
+    reviewsData?: any | null;
   };
   builder?: React.ReactNode;
 }
@@ -186,6 +187,7 @@ export default function DarazProductLayout({
       brand={brand}
       permalinkMap={permalinkMap}
       builder={builder}
+      reviewsData={pageData?.reviewsData ?? null}
       seller={
         seller
           ? {

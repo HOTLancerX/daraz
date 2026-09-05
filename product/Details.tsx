@@ -10,6 +10,7 @@ import ProductFlashBox from "@/plugin/flash-sale/box/Product-flash";
 import Variant from "@/plugin/product/product/Variant";
 import { getAllRootPages } from "@/hook";
 import { xFetch } from "@/lib/express";
+import DarazReviews from "./DarazReviews";
 
 export interface DarazProductDetailsProps {
   data: { id: string; title: string; slug: string };
@@ -66,6 +67,7 @@ export interface DarazProductDetailsProps {
   flashSaleCampaign?: any | null;
   permalinkMap?: Record<string, string>;
   builder?: React.ReactNode;
+  reviewsData?: any | null;
 }
 
 interface CartItem {
@@ -178,6 +180,7 @@ export default function DarazProductDetails({
   flashSaleCampaign = null,
   permalinkMap = {},
   builder,
+  reviewsData = null,
 }: DarazProductDetailsProps) {
   const router = useRouter();
   const { success, error } = useToast();
@@ -804,44 +807,7 @@ export default function DarazProductDetails({
         </div>
 
         {/* ─── 4. RATINGS & REVIEWS BOX ─── */}
-        <div className="bg-white rounded-lg p-4 sm:p-6 shadow-xs space-y-4">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">
-            Ratings & Reviews of {data.title}
-          </h2>
-
-          <div className="flex flex-col sm:flex-row items-center gap-6 py-4 border-b border-gray-100">
-            <div className="text-center sm:text-left">
-              <p className="text-4xl font-extrabold text-gray-900">
-                0<span className="text-lg font-normal text-gray-400">/5</span>
-              </p>
-              <div className="flex text-amber-400 my-1 justify-center sm:justify-start">
-                {[...Array(5)].map((_, i) => (
-                  <Icon key={i} icon="solar:star-bold" width={18} className="text-gray-200" />
-                ))}
-              </div>
-              <p className="text-xs text-gray-400">0 Ratings</p>
-            </div>
-
-            {/* Ratings distribution bars */}
-            <div className="flex-1 w-full space-y-1.5 text-xs text-gray-500">
-              {[5, 4, 3, 2, 1].map((star) => (
-                <div key={star} className="flex items-center gap-2">
-                  <span className="w-12 text-right">{star} Stars</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-400 w-0" />
-                  </div>
-                  <span className="w-6 text-right">0</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="py-8 text-center text-xs text-gray-400 flex flex-col items-center gap-2">
-            <Icon icon="solar:chat-round-line-bold-duotone" width={48} className="text-gray-300" />
-            <p>This product has no reviews.</p>
-            <p className="text-gray-400">Let others know what you think and be the first to write a review.</p>
-          </div>
-        </div>
+        <DarazReviews reviewsData={reviewsData} productTitle={data.title} />
 
         {/* ─── 5. QUESTIONS ABOUT THIS PRODUCT BOX ─── */}
         <div className="bg-white rounded-lg p-4 sm:p-6 shadow-xs space-y-4">
